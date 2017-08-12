@@ -13,6 +13,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
@@ -118,34 +119,61 @@ public class BlockDisguises {
         CommandSpec disguise = CommandSpec.builder()
                 .description(Text.of("Disguise as a block"))
                 .permission("blockdisguises.command.disguise")
-                .arguments( GenericArguments.onlyOne(GenericArguments.string(Text.of("blocktype"))),
-                        GenericArguments.onlyOne(GenericArguments.playerOrSource(Text.of("player"))))
+                .arguments( GenericArguments.onlyOne(GenericArguments.catalogedElement(Text.of("blocktype"), BlockType.class)),
+                            GenericArguments.onlyOne(GenericArguments.playerOrSource(Text.of("player"))),
+                            GenericArguments.flags().valueFlag(GenericArguments.string(Text.of("variant")), "v")
+                                                    .valueFlag(GenericArguments.string(Text.of("facing")), "f")
+                                                    .valueFlag(GenericArguments.string(Text.of("axis")), "a").buildWith(GenericArguments.none()))
                 .executor((src, args) -> {
                     Player player = args.<Player>getOne("player").get();
 
                     if (disguised.containsKey(player.getUniqueId())) {
-                        if (src == player) {
-                            src.sendMessage(Text.of(prefix, TextColors.RED, "You are already disguised"));
-                        } else {
-                            src.sendMessage(Text.of(prefix, TextColors.RED, "'" + player.getName() + "' is already disguised"));
+                        undisguise(player);
+                    }
+
+                    BlockType blockType = args.<BlockType>getOne("blocktype").get();
+                    BlockState blockState = blockType.getDefaultState();
+
+                    Optional<String> variantString = args.getOne("variant");
+                    if (variantString.isPresent()) {
+                        Optional<BlockTrait<?>> variantTrait = blockState.getTrait("variant");
+                        if (variantTrait.isPresent()) {
+                            Optional<BlockState> blockStateWithVariant = blockState.withTrait(variantTrait.get(), variantString.get());
+                            if (blockStateWithVariant.isPresent()) {
+                                blockState = blockStateWithVariant.get();
+                            }
                         }
-                        return CommandResult.empty();
                     }
 
-                    String blockTypeString = args.<String>getOne("blocktype").get();
-                    Optional<BlockType> blockType = Sponge.getRegistry().getType(BlockType.class, blockTypeString);
-                    if (!blockType.isPresent()) {
-                        src.sendMessage(Text.of(prefix, TextColors.RED, "'" + blockTypeString + "' is not a valid block type"));
-                        return CommandResult.empty();
+                    Optional<String> facingString = args.getOne("facing");
+                    if (facingString.isPresent()) {
+                        Optional<BlockTrait<?>> facingTrait = blockState.getTrait("facing");
+                        if (facingTrait.isPresent()) {
+                            Optional<BlockState> blockStateWithFacing = blockState.withTrait(facingTrait.get(), facingString.get());
+                            if (blockStateWithFacing.isPresent()) {
+                                blockState = blockStateWithFacing.get();
+                            }
+                        }
                     }
 
-                    disguise(player, blockType.get().getDefaultState());
+                    Optional<String> axisString = args.getOne("axis");
+                    if (axisString.isPresent()) {
+                        Optional<BlockTrait<?>> axisTrait = blockState.getTrait("axis");
+                        if (axisTrait.isPresent()) {
+                            Optional<BlockState> blockStateWithAxis = blockState.withTrait(axisTrait.get(), axisString.get());
+                            if (blockStateWithAxis.isPresent()) {
+                                blockState = blockStateWithAxis.get();
+                            }
+                        }
+                    }
+
+                    disguise(player, blockState);
 
                     String start = player.getName() + " is";
                     if (src == player) {
                         start = "You are";
                     }
-                    src.sendMessage(Text.of(prefix, TextColors.YELLOW, start + " now disguised as " + blockType.get().getDefaultState().getType().getName()));
+                    src.sendMessage(Text.of(prefix, TextColors.YELLOW, start + " now disguised as " + blockState.getType().getName()));
                     return CommandResult.success();
                 })
                 .build();
@@ -306,10 +334,6 @@ public class BlockDisguises {
             trackedEntitiesNode.getNode("trackedEntities").setValue(new TypeToken<List<UUID>>() {}, list);
             trackedEntitiesConfig.save(trackedEntitiesNode);
         } catch (ObjectMappingException | IOException e) {
-            if (e instanceof NoSuchFileException || e instanceof AccessDeniedException || e instanceof FileAlreadyExistsException) {
-                return; // Exceptions caused from a .tmp file that Windows creates for whatever reason while saving trackedEntities.dat
-                // The name of the temporary file is something like 1502484168654trackedEntities.dat.tmp -- The numbers may be different. No idea why it's made, but it's there and it causes exceptions that don't seem to affect any functionality
-            }
             e.printStackTrace();
         }
     }
@@ -330,8 +354,8 @@ public class BlockDisguises {
     public void track(UUID entity) {
         synchronized (trackedEntities) {
             trackedEntities.add(entity);
+            serializeLeftoverEntities();
         }
-        serializeLeftoverEntities();
     }
 
     public boolean isBeingTracked(UUID entity) {
@@ -353,8 +377,8 @@ public class BlockDisguises {
     public void untrack(UUID entity) {
         synchronized (trackedEntities) {
             trackedEntities.remove(entity);
+            serializeLeftoverEntities();
         }
-        serializeLeftoverEntities();
     }
 
     public void disguise(Player player, BlockState blockState) {
@@ -556,6 +580,10 @@ public class BlockDisguises {
 
     public int getSolidifyDelay() {
         return solidifyDelay;
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 
     @Listener

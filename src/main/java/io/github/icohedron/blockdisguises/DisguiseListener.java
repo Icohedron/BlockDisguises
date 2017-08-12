@@ -52,8 +52,8 @@ public class DisguiseListener {
     }
 
     @Listener
-    public void onEntityDestruct(DestructEntityEvent event) {
-        if (event instanceof DestructEntityEvent.Death && event.getTargetEntity() instanceof Player) {
+    public void onEntityDestruct(DestructEntityEvent.Death event) {
+        if (event.getTargetEntity() instanceof Player) {
             Player player = (Player) event.getTargetEntity();
 
             if (blockDisguises.isDisguised(player)) {
