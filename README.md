@@ -28,7 +28,7 @@ blockdisguises.unidsguiseothers
 ## Commands
 ```
 # Disguise a player as a block (if [player] isn't specified, it will disguise the command executor instead)
-# Can also be followed up with any of these flags to create more types of blocks: [--variant <variant>] [--facing <facing>] [--color <color>] [--half <half>] [--type <type>] [--wet <wet>] [--powered <powered>] [--delay <delay>] [--shape <shape>] [--conditional <conditional>] [--axis <axis>]
+# Can also be followed up with any of these flags to create more types of blocks: [--variant=<variant>] [--facing=<facing>] [--color=<color>] [--half=<half>] [--type=<type>] [--wet=<wet>] [--powered=<powered>] [--delay=<delay>] [--shape=<shape>] [--conditional=<conditional>] [--axis=<axis>]
 /bd disguise <block> [player]
 
 # Undisguise a player (if [player] isn't specified, it will undisguise the command executor instead)
