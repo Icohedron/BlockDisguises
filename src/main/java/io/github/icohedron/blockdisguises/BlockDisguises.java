@@ -58,7 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-@Plugin(id = "blockdisguises", name = "Block Disguises", version = "1.0.0-S5.1-SNAPSHOT-2",
+@Plugin(id = "blockdisguises", name = "Block Disguises", version = "1.0.0-S5.1-SNAPSHOT-3",
         description = "Disguise as a block!", authors = {"Icohedron"})
 public class BlockDisguises {
 
@@ -125,6 +125,7 @@ public class BlockDisguises {
                                                     .valueFlag(GenericArguments.string(Text.of("facing")), "f")
                                                     .valueFlag(GenericArguments.string(Text.of("color")), "c")
                                                     .valueFlag(GenericArguments.string(Text.of("half")), "h")
+                                                    .valueFlag(GenericArguments.string(Text.of("type")), "t")
                                                     .valueFlag(GenericArguments.string(Text.of("axis")), "a").buildWith(GenericArguments.none()))
                 .executor((src, args) -> {
                     Player player = args.<Player>getOne("player").get();
@@ -176,6 +177,17 @@ public class BlockDisguises {
                             Optional<BlockState> blockStateWithHalf = blockState.withTrait(halfTrait.get(), halfString.get());
                             if (blockStateWithHalf.isPresent()) {
                                 blockState = blockStateWithHalf.get();
+                            }
+                        }
+                    }
+
+                    Optional<String> typeString = args.getOne("type");
+                    if (typeString.isPresent()) {
+                        Optional<BlockTrait<?>> typeTrait = blockState.getTrait("type");
+                        if (typeTrait.isPresent()) {
+                            Optional<BlockState> blockStateWithType = blockState.withTrait(typeTrait.get(), typeString.get());
+                            if (blockStateWithType.isPresent()) {
+                                blockState = blockStateWithType.get();
                             }
                         }
                     }
