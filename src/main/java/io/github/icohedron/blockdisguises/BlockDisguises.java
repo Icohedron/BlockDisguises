@@ -58,7 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-@Plugin(id = "blockdisguises", name = "Block Disguises", version = "1.0.0-S5.1-SNAPSHOT-3",
+@Plugin(id = "blockdisguises", name = "Block Disguises", version = "1.0.0-S5.1-SNAPSHOT-4",
         description = "Disguise as a block!", authors = {"Icohedron"})
 public class BlockDisguises {
 
@@ -126,6 +126,10 @@ public class BlockDisguises {
                                                     .valueFlag(GenericArguments.string(Text.of("color")), "c")
                                                     .valueFlag(GenericArguments.string(Text.of("half")), "h")
                                                     .valueFlag(GenericArguments.string(Text.of("type")), "t")
+                                                    .valueFlag(GenericArguments.string(Text.of("wet")), "w")
+                                                    .valueFlag(GenericArguments.string(Text.of("powered")), "p")
+                                                    .valueFlag(GenericArguments.string(Text.of("delay")), "d")
+                                                    .valueFlag(GenericArguments.string(Text.of("shape")), "s")
                                                     .valueFlag(GenericArguments.string(Text.of("axis")), "a").buildWith(GenericArguments.none()))
                 .executor((src, args) -> {
                     Player player = args.<Player>getOne("player").get();
@@ -148,57 +152,16 @@ public class BlockDisguises {
                         }
                     }
 
-                    Optional<String> facingString = args.getOne("facing");
-                    if (facingString.isPresent()) {
-                        Optional<BlockTrait<?>> facingTrait = blockState.getTrait("facing");
-                        if (facingTrait.isPresent()) {
-                            Optional<BlockState> blockStateWithFacing = blockState.withTrait(facingTrait.get(), facingString.get());
-                            if (blockStateWithFacing.isPresent()) {
-                                blockState = blockStateWithFacing.get();
-                            }
-                        }
-                    }
-
-                    Optional<String> colorString = args.getOne("color");
-                    if (colorString.isPresent()) {
-                        Optional<BlockTrait<?>> colorTrait = blockState.getTrait("color");
-                        if (colorTrait.isPresent()) {
-                            Optional<BlockState> blockStateWithColor = blockState.withTrait(colorTrait.get(), colorString.get());
-                            if (blockStateWithColor.isPresent()) {
-                                blockState = blockStateWithColor.get();
-                            }
-                        }
-                    }
-
-                    Optional<String> halfString = args.getOne("half");
-                    if (halfString.isPresent()) {
-                        Optional<BlockTrait<?>> halfTrait = blockState.getTrait("half");
-                        if (halfTrait.isPresent()) {
-                            Optional<BlockState> blockStateWithHalf = blockState.withTrait(halfTrait.get(), halfString.get());
-                            if (blockStateWithHalf.isPresent()) {
-                                blockState = blockStateWithHalf.get();
-                            }
-                        }
-                    }
-
-                    Optional<String> typeString = args.getOne("type");
-                    if (typeString.isPresent()) {
-                        Optional<BlockTrait<?>> typeTrait = blockState.getTrait("type");
-                        if (typeTrait.isPresent()) {
-                            Optional<BlockState> blockStateWithType = blockState.withTrait(typeTrait.get(), typeString.get());
-                            if (blockStateWithType.isPresent()) {
-                                blockState = blockStateWithType.get();
-                            }
-                        }
-                    }
-
-                    Optional<String> axisString = args.getOne("axis");
-                    if (axisString.isPresent()) {
-                        Optional<BlockTrait<?>> axisTrait = blockState.getTrait("axis");
-                        if (axisTrait.isPresent()) {
-                            Optional<BlockState> blockStateWithAxis = blockState.withTrait(axisTrait.get(), axisString.get());
-                            if (blockStateWithAxis.isPresent()) {
-                                blockState = blockStateWithAxis.get();
+                    String[] traits = new String[] {"facing", "color", "half", "type", "wet", "powered", "delay", "shape", "axis"};
+                    for (String flag : traits) {
+                        Optional<String> flagString = args.getOne(flag);
+                        if (flagString.isPresent()) {
+                            Optional<BlockTrait<?>> flagTrait = blockState.getTrait(flag);
+                            if (flagTrait.isPresent()) {
+                                Optional<BlockState> blockStateWithTrait = blockState.withTrait(flagTrait.get(), flagString.get());
+                                if (blockStateWithTrait.isPresent()) {
+                                    blockState = blockStateWithTrait.get();
+                                }
                             }
                         }
                     }
