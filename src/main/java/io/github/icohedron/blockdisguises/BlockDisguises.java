@@ -58,7 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-@Plugin(id = "blockdisguises", name = "Block Disguises", version = "1.0.0-S5.1-SNAPSHOT-4",
+@Plugin(id = "blockdisguises", name = "Block Disguises", version = "1.0.0-S5.1-SNAPSHOT-5",
         description = "Disguise as a block!", authors = {"Icohedron"})
 public class BlockDisguises {
 
@@ -121,16 +121,17 @@ public class BlockDisguises {
                 .permission("blockdisguises.command.disguise")
                 .arguments( GenericArguments.onlyOne(GenericArguments.catalogedElement(Text.of("blocktype"), BlockType.class)),
                             GenericArguments.onlyOne(GenericArguments.playerOrSource(Text.of("player"))),
-                            GenericArguments.flags().valueFlag(GenericArguments.string(Text.of("variant")), "v")
-                                                    .valueFlag(GenericArguments.string(Text.of("facing")), "f")
-                                                    .valueFlag(GenericArguments.string(Text.of("color")), "c")
-                                                    .valueFlag(GenericArguments.string(Text.of("half")), "h")
-                                                    .valueFlag(GenericArguments.string(Text.of("type")), "t")
-                                                    .valueFlag(GenericArguments.string(Text.of("wet")), "w")
-                                                    .valueFlag(GenericArguments.string(Text.of("powered")), "p")
-                                                    .valueFlag(GenericArguments.string(Text.of("delay")), "d")
-                                                    .valueFlag(GenericArguments.string(Text.of("shape")), "s")
-                                                    .valueFlag(GenericArguments.string(Text.of("axis")), "a").buildWith(GenericArguments.none()))
+                            GenericArguments.flags().valueFlag(GenericArguments.string(Text.of("variant")), "-variant")
+                                                    .valueFlag(GenericArguments.string(Text.of("facing")), "-facing")
+                                                    .valueFlag(GenericArguments.string(Text.of("color")), "-color")
+                                                    .valueFlag(GenericArguments.string(Text.of("half")), "-half")
+                                                    .valueFlag(GenericArguments.string(Text.of("type")), "-type")
+                                                    .valueFlag(GenericArguments.string(Text.of("wet")), "-wet")
+                                                    .valueFlag(GenericArguments.string(Text.of("powered")), "-powered")
+                                                    .valueFlag(GenericArguments.string(Text.of("delay")), "-delay")
+                                                    .valueFlag(GenericArguments.string(Text.of("shape")), "-shape")
+                                                    .valueFlag(GenericArguments.string(Text.of("conditional")), "-conditional")
+                                                    .valueFlag(GenericArguments.string(Text.of("axis")), "-axis").buildWith(GenericArguments.none()))
                 .executor((src, args) -> {
                     Player player = args.<Player>getOne("player").get();
 
@@ -152,7 +153,7 @@ public class BlockDisguises {
                         }
                     }
 
-                    String[] traits = new String[] {"facing", "color", "half", "type", "wet", "powered", "delay", "shape", "axis"};
+                    String[] traits = new String[] {"facing", "color", "half", "type", "wet", "powered", "delay", "shape", "conditional", "axis"};
                     for (String flag : traits) {
                         Optional<String> flagString = args.getOne(flag);
                         if (flagString.isPresent()) {
@@ -236,7 +237,7 @@ public class BlockDisguises {
 
                         Optional<DisguiseData> disguiseData = getDisguiseData(entry.getKey());
                         if (disguiseData.isPresent()) {
-                            contents.add(Text.of(entry.getValue(), TextColors.GRAY, " -> Disguised as ", TextColors.YELLOW, disguiseData.get().getBlockState().getType().getName()));
+                            contents.add(Text.of(entry.getValue(), TextColors.GRAY, " -> Disguised as ", TextColors.YELLOW, disguiseData.get().getBlockState().getName()));
                         } else {
                             contents.add(Text.of(entry.getValue()));
                         }

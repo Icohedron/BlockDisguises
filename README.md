@@ -3,7 +3,7 @@ Disguise as a block!
 
 ## Permissions
 ```
-# Grants the use of '/bd disguise <block> [player] [-v variant] [-f facing] [-c color] [-h half] [-t type] [-w wet] [-p powered] [-d delay] [-s shape] [-a axis]'
+# Grants the use of '/bd disguise <block> [player]'
 blockdisguises.command.disguise
 
 # Grants the use of '/bd undisguise [player]'
@@ -28,7 +28,8 @@ blockdisguises.unidsguiseothers
 ## Commands
 ```
 # Disguise a player as a block (if [player] isn't specified, it will disguise the command executor instead)
-/bd disguise <block> [player] [-v variant] [-f facing] [-c color] [-h half] [-t type] [-w wet] [-p powered] [-d delay] [-s shape] [-a axis]
+# Can also be followed up with any of these flags to create more types of blocks: [--variant <variant>] [--facing <facing>] [--color <color>] [--half <half>] [--type <type>] [--wet <wet>] [--powered <powered>] [--delay <delay>] [--shape <shape>] [--conditional <conditional>] [--axis <axis>]
+/bd disguise <block> [player]
 
 # Undisguise a player (if [player] isn't specified, it will undisguise the command executor instead)
 /bd undisguise [player]
