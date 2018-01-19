@@ -27,8 +27,10 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameConstructionEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.TypeTokens;
@@ -42,7 +44,7 @@ import java.util.UUID;
 public class BlockDisguises {
 
     // Future improvements:
-    // Disguises persist over server restarts and disconnects. May require additional custom data
+    // Disguises persist over server restarts. May require additional custom data
     // Turn off player collision with disguised players (and turn them invisible too if this works). May require additional custom data
 
     public static Key<Value<UUID>> DISGUISE_OWNER;
@@ -62,7 +64,9 @@ public class BlockDisguises {
     // Handy for having an instance of this plugin available from anywhere
     private static BlockDisguises instance;
     public static BlockDisguises getInstance() {
-        assert instance != null;
+        if (instance == null) {
+            throw new NullPointerException("No instance of BlockDisguises is available!");
+        }
         return instance;
     }
 
@@ -94,6 +98,12 @@ public class BlockDisguises {
         initializeCommands();
 
         Sponge.getEventManager().registerListeners(this, new DisguiseListener());
+
+        Task.builder()
+            .execute(() ->
+                Sponge.getServer().getOnlinePlayers().forEach(player -> disguiseManager.sendBlockChanges(player))
+            ).intervalTicks(1).submit(this);
+
         logger.info("Finished initialization");
     }
 
@@ -185,7 +195,6 @@ public class BlockDisguises {
             rootNode = configurationLoader.createEmptyNode();
         }
 
-        assert rootNode != null;
         return rootNode;
     }
 
@@ -207,237 +216,8 @@ public class BlockDisguises {
         disguiseManager.updateConfig(config);
     }
 
-//    public void track(UUID entity) {
-//        synchronized (trackedEntities) {
-//            trackedEntities.add(entity);
-//            serializeLeftoverEntities();
-//        }
-//    }
-//
-//    public boolean isBeingTracked(UUID entity) {
-//        return trackedEntities.contains(entity);
-//    }
-//
-//    public boolean isStray(UUID entity) {
-//        for (DisguiseOwnerData disguiseData : uuidDisguiseDataMap.values()) {
-//            if (disguiseData.getDisguiseEntityData().isPresent()) {
-//                DisguiseEntityData disguiseEntityData = disguiseData.getDisguiseEntityData().get();
-//                if (disguiseEntityData.getFallingBlock().equals(entity) || disguiseEntityData.getArmorStand().equals(entity)) {
-//                    return false;
-//                }
-//            }
-//        }
-//        return true;
-//    }
-//
-//    public void untrack(UUID entity) {
-//        synchronized (trackedEntities) {
-//            trackedEntities.remove(entity);
-//            serializeLeftoverEntities();
-//        }
-//    }
-//
-//    public void disguise(Player player, BlockState blockState) {
-//        disguised.put(player.getUniqueId(), player.getName());
-//        vanishPlayer(player);
-//        DisguiseEntityData disguiseEntityData = createDisguiseEntities(player, blockState);
-//        uuidDisguiseDataMap.put(player.getUniqueId(), new DisguiseOwnerData(player.getUniqueId(), blockState, disguiseEntityData));
-//        if (!disguisedActions.get("turn_solid")) {
-//            uuidDisguiseDataMap.get(player.getUniqueId()).getSolidifyTask().cancel();
-//        }
-//    }
-//
-//    public void undisguise(Player player) {
-//        unsolidify(player);
-//        disguised.remove(player.getUniqueId());
-//        unvanishPlayer(player);
-//        uuidDisguiseDataMap.get(player.getUniqueId()).setDisguiseEntityData(null);
-//        uuidDisguiseDataMap.get(player.getUniqueId()).getSolidifyTask().cancel();
-//        uuidDisguiseDataMap.remove(player.getUniqueId());
-//    }
-//
-//    public void vanishPlayer(Player player) {
-////        InvisibilityData invisibilityData = player.getOrCreate(InvisibilityData.class).get();
-////        invisibilityData.set(invisibilityData.ignoresCollisionDetection().set(true));
-////        invisibilityData.set(invisibilityData.invisible().set(true));
-////        invisibilityData.set(invisibilityData.untargetable().set(true));
-////        invisibilityData.set(invisibilityData.vanish().set(false));
-////        player.offer(invisibilityData);
-//
-//        player.offer(Keys.VANISH, true);
-//        player.offer(Keys.VANISH_IGNORES_COLLISION, true);
-//        player.offer(Keys.VANISH_PREVENTS_TARGETING, true);
-//    }
-//
-//    public void unvanishPlayer(Player player) {
-////        InvisibilityData invisibilityData = player.getOrCreate(InvisibilityData.class).get();
-////        invisibilityData.set(invisibilityData.ignoresCollisionDetection().set(false));
-////        invisibilityData.set(invisibilityData.invisible().set(false));
-////        invisibilityData.set(invisibilityData.untargetable().set(false));
-////        invisibilityData.set(invisibilityData.vanish().set(false));
-////        player.offer(invisibilityData);
-//
-//        player.offer(Keys.VANISH, false);
-//        player.offer(Keys.VANISH_IGNORES_COLLISION, false);
-//        player.offer(Keys.VANISH_PREVENTS_TARGETING, false);
-//    }
-//
-//    public DisguiseEntityData createDisguiseEntities(Player player, BlockState blockState) {
-//        World world = player.getWorld();
-//
-//        Entity armorStand = world.createEntity(EntityTypes.ARMOR_STAND, player.getLocation().getPosition());
-//        armorStand.offer(Keys.HAS_GRAVITY, false);
-//        armorStand.offer(Keys.INVISIBLE, true);
-//        armorStand.offer(Keys.ARMOR_STAND_MARKER, true);
-//
-//        Entity fallingBlock = world.createEntity(EntityTypes.FALLING_BLOCK, player.getLocation().getPosition());
-//        fallingBlock.offer(Keys.HAS_GRAVITY, false);
-//        fallingBlock.offer(Keys.FALL_TIME, Integer.MAX_VALUE);
-//        fallingBlock.offer(Keys.FALLING_BLOCK_STATE, blockState);
-//
-//        world.spawnEntity(armorStand);
-//        world.spawnEntity(fallingBlock);
-//
-//        armorStand.addPassenger(fallingBlock);
-//
-//        track(armorStand.getUniqueId());
-//        track(fallingBlock.getUniqueId());
-//
-//        return new DisguiseEntityData(world.getUniqueId(), armorStand.getUniqueId(), fallingBlock.getUniqueId());
-//    }
-//
-//    public synchronized void sendBlockChanges(Player player) {
-//        Iterator<Map.Entry<UUID, SolidDisguise>> iterator = uuidSolidDisguiseMap.entrySet().iterator();
-//        while (iterator.hasNext()) {
-//            Map.Entry entry = iterator.next();
-//            UUID key = (UUID) entry.getKey();
-//            SolidDisguise value = (SolidDisguise) entry.getValue();
-//
-//            if (!key.equals(player.getUniqueId()) && value.getWorld().equals(player.getWorld().getUniqueId())) {
-//                player.sendBlockChange(value.getLocation(), value.getBlockState());
-//            }
-//        }
-//    }
-//
-//    public void solidify(UUID player) {
-//        Optional<Player> disguisedPlayerOptional = Sponge.getServer().getPlayer(player);
-//        if (disguisedPlayerOptional.isPresent()) {
-//            solidify(disguisedPlayerOptional.get());
-//        }
-//    }
-//
-//    public void solidify(Player player) {
-//        if (!disguised.containsKey(player.getUniqueId()) || uuidSolidDisguiseMap.containsKey(player.getUniqueId())) {
-//            return;
-//        }
-//
-//        if (!player.getLocation().getBlock().getType().equals(BlockTypes.AIR)) {
-//            player.sendMessage(Text.of(prefix, TextColors.RED, "You can not become solid here!"));
-//            getDisguiseData(player).get().resetSolidifyTask();
-//            return;
-//        }
-//
-//        uuidDisguiseDataMap.get(player.getUniqueId()).setDisguiseEntityData(null);
-//        World world = player.getWorld();
-//        Vector3i blockPosition = player.getLocation().getBlockPosition();
-//
-//        BlockState blockState = uuidDisguiseDataMap.get(player.getUniqueId()).getBlockState();
-//
-//        for (Player p : world.getPlayers()) {
-//            if (p.getUniqueId().equals(player.getUniqueId())) {
-//                continue;
-//            }
-//            p.sendBlockChange(blockPosition, blockState);
-//        }
-//
-//        SolidDisguise solidDisguise = new SolidDisguise(player.getUniqueId(), world.getUniqueId(), blockPosition, blockState);
-//
-//        synchronized (uuidSolidDisguiseMap) {
-//            uuidSolidDisguiseMap.put(player.getUniqueId(), solidDisguise);
-//        }
-//
-//        player.sendMessage(Text.of(prefix, TextColors.GREEN, "You are now solid"));
-//    }
-//
-//    public void unsolidify(UUID player) {
-//        Optional<Player> disguisedPlayerOptional = Sponge.getServer().getPlayer(player);
-//        if (disguisedPlayerOptional.isPresent()) {
-//            unsolidify(disguisedPlayerOptional.get());
-//        }
-//    }
-//
-//    public void unsolidify(Player player) {
-//        if (!disguised.containsKey(player.getUniqueId()) || !uuidSolidDisguiseMap.containsKey(player.getUniqueId())) {
-//            return;
-//        }
-//
-//        uuidDisguiseDataMap.get(player.getUniqueId()).setDisguiseEntityData(createDisguiseEntities(player, uuidDisguiseDataMap.get(player.getUniqueId()).getBlockState()));
-//        World world = player.getWorld();
-//        Vector3i blockPosition = uuidSolidDisguiseMap.get(player.getUniqueId()).getLocation();
-//
-//        for (Player p : world.getPlayers()) {
-//            p.resetBlockChange(blockPosition);
-//        }
-//
-//        synchronized (uuidSolidDisguiseMap) {
-//            uuidSolidDisguiseMap.remove(player.getUniqueId());
-//        }
-//
-//        player.sendMessage(Text.of(prefix, TextColors.RED, "You are no longer solid"));
-//    }
-//
-//    public void damagePlayer(UUID target, Player source) {
-//        Sponge.getServer().getPlayer(target).ifPresent(player -> {
-//            DamageSource damageSource = EntityDamageSource.builder().type(DamageTypes.CUSTOM).entity(source).absolute().bypassesArmor().build();
-//            player.damage(damageToDisguised, damageSource);
-//            source.playSound(SoundTypes.ENTITY_PLAYER_HURT, player.getLocation().getPosition(), 1.0);
-//        });
-//    }
-//
-//    public boolean isDisguised(Player player) {
-//        return disguised.containsKey(player.getUniqueId());
-//    }
-//
-//    public boolean isDisguised(UUID player) {
-//        return disguised.containsKey(player);
-//    }
-//
-//    public Optional<DisguiseOwnerData> getDisguiseData(Player player) {
-//        return getDisguiseData(player.getUniqueId());
-//    }
-//
-//    public Optional<DisguiseOwnerData> getDisguiseData(UUID playerUUID) {
-//        try {
-//            return Optional.of(uuidDisguiseDataMap.get(playerUUID));
-//        } catch (NullPointerException e) {
-//            return Optional.empty();
-//        }
-//    }
-//
-//    public Optional<DisguiseOwnerData> getDisguiseData(FallingBlock fallingBlock) {
-//        for (DisguiseOwnerData disguiseData : uuidDisguiseDataMap.values()) {
-//            if (disguiseData.getDisguiseEntityData().isPresent()) {
-//                if (disguiseData.getDisguiseEntityData().get().getFallingBlock().equals(fallingBlock.getUniqueId())) {
-//                    return Optional.of(disguiseData);
-//                }
-//            }
-//        }
-//        return Optional.empty();
-//    }
-//
-//    public Collection<SolidDisguise> getSolidDisguises() {
-//        return uuidSolidDisguiseMap.values();
-//    }
-//
-//    public boolean disguisedHasAction(String action) {
-//        try {
-//            return disguisedActions.get(action);
-//        } catch (NullPointerException e) {
-//            return true;
-//        }
-//    }
-//
-//    public int getSolidifyDelay() {
-//        return solidifyDelay;
-//    }
+    @Listener
+    public void onGameStoppingServer(GameStoppingServerEvent event) {
+        disguiseManager.undisguiseAll();
+    }
 }

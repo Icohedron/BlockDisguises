@@ -19,7 +19,7 @@ public class ListCmd extends BlockDisguiseCmd {
         Stack<Text> contents = new Stack<>();
         for (UUID disguised : disguiseManager.getAllDisguised()) {
             Disguise disguise = disguiseManager.getDisguise(disguised);
-            contents.push(Text.of(disguise.getOwnerName(), TextColors.GRAY, " -> Disguised as ", TextColors.YELLOW, disguise.getBlockState().getName()));
+            contents.push(Text.of(disguise.getOwnerName().get(), TextColors.GRAY, " -> Disguised as ", TextColors.YELLOW, disguise.getBlockState().getName()));
         }
         PaginationList.builder()
                 .title(Text.of(TextColors.DARK_GREEN, "Disguised players"))

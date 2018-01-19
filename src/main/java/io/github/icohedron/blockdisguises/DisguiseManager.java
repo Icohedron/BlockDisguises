@@ -2,6 +2,9 @@ package io.github.icohedron.blockdisguises;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,11 +17,6 @@ public class DisguiseManager {
 
     // Configuration variables
     private int solidifyDelay; // Amount of delay, in game ticks, before a disguise turns into a solid block
-    private double damageDealtToDisguised;
-    private boolean disguisedTurnSolid;
-    private boolean disguisedUnsolidifyWhenAttacked;
-    private boolean disguisedCanAttackOtherEntities;
-    private boolean disguisedCanAttackOtherDisguised;
 
     public DisguiseManager(ConfigurationNode config) {
         disguises = new HashMap<>();
@@ -26,16 +24,11 @@ public class DisguiseManager {
     }
 
     public void updateConfig(ConfigurationNode config) {
-        solidifyDelay = config.getNode("solidify_delay").getInt(4);
-        damageDealtToDisguised = config.getNode("damage_to_disguised").getDouble(5.0);
-        disguisedTurnSolid = config.getNode("disguised_turn_solid").getBoolean(true);
-        disguisedUnsolidifyWhenAttacked = config.getNode("disguised_unsolidify_when_attacked").getBoolean(true);
-        disguisedCanAttackOtherEntities = config.getNode("disguised_can_attack_other_entities").getBoolean(true);
-        disguisedCanAttackOtherDisguised = config.getNode("disguised_can_attack_other_disguised").getBoolean(false);
+        solidifyDelay = config.getNode("solidify_delay").getInt(60);
     }
 
-    public void disguise(UUID player, BlockState blockState) {
-        disguises.put(player, new Disguise(player, blockState));
+    public void disguise(Player player, BlockState blockState) {
+        disguises.put(player.getUniqueId(), new Disguise(player, blockState));
     }
 
     public void undisguise(UUID player) {
@@ -48,6 +41,14 @@ public class DisguiseManager {
         for (UUID disguised : disguises.keySet()) {
             undisguise(disguised);
         }
+    }
+
+    public void sendBlockChanges(Player player) {
+        disguises.entrySet().forEach(uuidDisguiseEntry -> uuidDisguiseEntry.getValue().sendBlockChange(player));
+    }
+
+    public void sendBlockChangesOptimally(Player player, Location<World> from, Location<World> to) {
+        disguises.entrySet().forEach(uuidDisguiseEntry -> uuidDisguiseEntry.getValue().sendBlockChangeOptimally(player, from, to));
     }
 
     public boolean isDisguised(UUID uuid) {
@@ -64,5 +65,9 @@ public class DisguiseManager {
 
     public Set<UUID> getAllDisguised() {
         return disguises.keySet();
+    }
+
+    public int getSolidifyDelay() {
+        return solidifyDelay;
     }
 }

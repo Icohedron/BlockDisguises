@@ -47,7 +47,7 @@ public class DisguiseCmd extends BlockDisguiseCmd {
             }
         }
 
-        disguiseManager.disguise(uuid, blockState);
+        disguiseManager.disguise(player, blockState);
 
         String startClause = src == player ? "You are" : player.getName() + " is";
         src.sendMessage(Text.of(blockDisguises.getTextPrefix(), TextColors.YELLOW, startClause + " now disguised as " + blockState.getType().getName().substring(10)));
