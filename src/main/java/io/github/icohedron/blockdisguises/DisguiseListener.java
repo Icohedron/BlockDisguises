@@ -3,10 +3,12 @@ package io.github.icohedron.blockdisguises;
 import com.flowpowered.math.vector.Vector3i;
 import io.github.icohedron.blockdisguises.data.DisguiseOwnerData;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.value.mutable.Value;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.entity.living.player.gamemode.GameMode;
 import org.spongepowered.api.entity.living.player.gamemode.GameModes;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
@@ -35,6 +37,17 @@ public class DisguiseListener {
         blockDisguises = BlockDisguises.getInstance();
         disguiseManager = blockDisguises.getDisguiseManager();
         lastDamageSource = new HashMap<>();
+    }
+
+    private boolean isKillable(Player player) {
+        Value<GameMode> gameModeValue = player.gameMode();
+        if (gameModeValue.exists()) {
+            GameMode gameMode = gameModeValue.get();
+            if (gameMode.equals(GameModes.SURVIVAL) || gameMode.equals(GameModes.ADVENTURE)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Listener
@@ -86,7 +99,7 @@ public class DisguiseListener {
             disguise.clientJoinCallback(event, player);
         }
 
-        //disguiseManager.sendBlockChanges(player);
+//        disguiseManager.sendBlockChanges(player);
     }
 
     @Listener
@@ -101,7 +114,7 @@ public class DisguiseListener {
     @Listener
     public void onMoveEvent(MoveEntityEvent event, @First Player player) {
         // disguiseManager.sendBlockChanges(player);
-        //disguiseManager.sendBlockChangesOptimally(player, event.getFromTransform().getLocation(), event.getToTransform().getLocation());
+//        disguiseManager.sendBlockChangesOptimally(player, event.getFromTransform().getLocation(), event.getToTransform().getLocation());
 
         UUID uuid = player.getUniqueId();
         if (disguiseManager.isDisguised(uuid)) {
@@ -130,7 +143,7 @@ public class DisguiseListener {
         if (entity instanceof Player && disguiseManager.isDisguised(entity.getUniqueId())) {
             Player targetPlayer = (Player) entity;
 
-            if (targetPlayer.gameMode().exists() && targetPlayer.gameMode().get().equals(GameModes.CREATIVE)) {
+            if (!isKillable(targetPlayer)) {
                 return;
             }
 
@@ -145,7 +158,6 @@ public class DisguiseListener {
                         && disguiseLoc.getBlockPosition().equals(blockPos)
                         && disguiseLoc.getExtent().getUniqueId().equals(player.getWorld().getUniqueId())) {
 
-
                     targetPlayer.offer(Keys.HEALTH, 0.0);
                     player.playSound(SoundTypes.ENTITY_PLAYER_HURT, targetPlayer.getLocation().getPosition(), 1.0);
                     return;
@@ -156,18 +168,21 @@ public class DisguiseListener {
 
             Optional<UUID> disguiseOwner = entity.get(BlockDisguises.DISGUISE_OWNER);
             if (disguiseOwner.isPresent()) {
+
                 if (disguiseManager.isDisguised(disguiseOwner.get())) {
+
                     Optional<User> user = disguiseManager.getDisguise(disguiseOwner.get()).getOwnerUser();
                     if (user.isPresent()) {
                         Optional<Player> owner = user.get().getPlayer();
                         if (owner.isPresent()) {
-                            if (owner.get().gameMode().exists() && owner.get().gameMode().get().equals(GameModes.CREATIVE)) {
+                            if (!isKillable(owner.get())) {
                                 return;
                             }
                             owner.get().offer(Keys.HEALTH, 0.0);
                             player.playSound(SoundTypes.ENTITY_PLAYER_HURT, owner.get().getLocation().getPosition(), 1.0);
                         }
                     }
+
                 } else {
                     entity.remove();
                 }
@@ -198,11 +213,16 @@ public class DisguiseListener {
                     && disguiseLoc.getBlockPosition().equals(blockPos)
                     && disguiseLoc.getExtent().getUniqueId().equals(event.getTargetBlock().getWorldUniqueId())) {
 
-                //disguise.sendBlockChange(player);
+//                disguise.sendBlockChange(player);
 
                 if (!disguiseManager.isDisguised(player.getUniqueId())) {
                     assert disguise.getOwnerUser().get().getPlayer().isPresent();
                     Player disguiseOwner = disguise.getOwnerUser().get().getPlayer().get();
+
+                    if (!isKillable(disguiseOwner)) {
+                        return;
+                    }
+
                     disguiseOwner.offer(Keys.HEALTH, 0.0);
                     player.playSound(SoundTypes.ENTITY_PLAYER_HURT, player.getLocation().getPosition(), 1.0);
                 }

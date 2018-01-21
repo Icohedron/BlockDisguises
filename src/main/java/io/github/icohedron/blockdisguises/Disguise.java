@@ -244,7 +244,7 @@ public class Disguise {
 
         removeEntities();
         state = State.SOLID;
-        //sendBlockChanges();
+//        sendBlockChanges();
     }
 
     private void setNone() {

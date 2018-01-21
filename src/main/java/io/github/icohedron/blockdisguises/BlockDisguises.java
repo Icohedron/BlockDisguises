@@ -151,7 +151,7 @@ public class BlockDisguises {
                 .description(Text.of("Reload the configuration"))
                 .permission(PluginInfo.ID + ".command.reload")
                 .executor((src, args) -> {
-                    loadConfig();
+                    onReload(null);
                     src.sendMessage(Text.of(prefix, TextColors.YELLOW, "Reloaded configuration"));
                     return CommandResult.success();
                 })
