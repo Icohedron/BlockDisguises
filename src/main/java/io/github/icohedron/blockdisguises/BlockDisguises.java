@@ -44,8 +44,9 @@ import java.util.UUID;
 public class BlockDisguises {
 
     // Future improvements:
-    // Disguises persist over server restarts. May require additional custom data
-    // Turn off player collision with disguised players (and turn them invisible too if this works). May require additional custom data
+    // - Disguises persist over server restarts. May require additional custom data
+    // - Turn off player collision with disguised players (and turn them invisible too if this works). May require additional custom data
+    // - Let hiders see their own disguise when solidified. Requires Contextual data to be implemented in Sponge
 
     public static Key<Value<UUID>> DISGUISE_OWNER;
 
