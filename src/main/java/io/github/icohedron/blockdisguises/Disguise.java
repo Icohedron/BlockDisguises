@@ -1,7 +1,10 @@
 package io.github.icohedron.blockdisguises;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import com.flowpowered.math.vector.Vector3i;
-import io.github.icohedron.blockdisguises.data.DisguiseOwnerData;
+
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockTypes;
@@ -20,8 +23,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-import java.util.Optional;
-import java.util.UUID;
+import io.github.icohedron.blockdisguises.data.DisguiseOwnerData;
 
 public class Disguise {
 
@@ -122,12 +124,15 @@ public class Disguise {
 
         if (player.getWorld().getUniqueId().equals(getWorld())) {
 
-            Vector3i playerBlockPosition = player.getLocation().getBlockPosition();
-            Vector3i thisBlockPosition = lastLocation.getBlockPosition();
+            // Render distance check commented out because it might be causing issues with players not being able to see solid blocks
+            // Vector3i playerBlockPosition = player.getLocation().getBlockPosition();
+            // Vector3i thisBlockPosition = lastLocation.getBlockPosition();
 
-            if (playerBlockPosition.distance(thisBlockPosition) <= player.getViewDistance() * 16) {
-                player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
-            }
+            // if (playerBlockPosition.distance(thisBlockPosition) <= player.getViewDistance() * 16) {
+                // player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
+            // }
+
+            player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
         }
     }
 

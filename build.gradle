@@ -5,7 +5,8 @@ plugins {
 }
 
 group = 'io.github.icohedron.blockdisguises'
-version = '1.1.0-S7.0'
+version = '1.1.1-S7.0'
+
 description = 'Disguise as a block!'
 
 sourceCompatibility = 1.8

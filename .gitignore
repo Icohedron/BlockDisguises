@@ -46,6 +46,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-build/
 .idea/
 .gradle/
+.settings/
+.vscode/
+bin/
+build/
+.classpath
+.project
