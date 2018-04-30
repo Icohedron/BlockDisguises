@@ -194,12 +194,14 @@ public class Disguise {
 
             if (player.getWorld().getUniqueId().equals(getWorld())) {
 
-                Vector3i playerBlockPosition = player.getLocation().getBlockPosition();
-                Vector3i thisBlockPosition = lastLocation.getBlockPosition();
+                // Vector3i playerBlockPosition = player.getLocation().getBlockPosition();
+                // Vector3i thisBlockPosition = lastLocation.getBlockPosition();
 
-                if (playerBlockPosition.distance(thisBlockPosition) <= player.getViewDistance() * 16) {
-                    player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
-                }
+                // if (playerBlockPosition.distance(thisBlockPosition) <= player.getViewDistance() * 16) {
+                //     player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
+                // }
+
+                player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
             }
         }
 
