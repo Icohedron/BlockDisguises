@@ -1,8 +1,6 @@
 package io.github.icohedron.blockdisguises;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,7 +16,6 @@ import org.spongepowered.api.entity.living.player.gamemode.GameMode;
 import org.spongepowered.api.entity.living.player.gamemode.GameModes;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
-import org.spongepowered.api.event.cause.entity.damage.source.DamageSource;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
@@ -37,12 +34,10 @@ public class DisguiseListener {
 
     private BlockDisguises blockDisguises;
     private DisguiseManager disguiseManager;
-    private Map<UUID, DamageSource> lastDamageSource;
 
     public DisguiseListener() {
         blockDisguises = BlockDisguises.getInstance();
         disguiseManager = blockDisguises.getDisguiseManager();
-        lastDamageSource = new HashMap<>();
     }
 
     private boolean isKillable(Player player) {

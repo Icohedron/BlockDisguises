@@ -59,6 +59,9 @@ public class Disguise {
 
         createEntities(player);
         createSolidifyTask();
+
+        BlockDisguises.sendDebugMessage(player.getName() + " has been disguised as " + blockState.getType().getName());
+        player.sendMessage(Text.of(BlockDisguises.getTextPrefix(), TextColors.YELLOW, "You are now disguised as " + blockState.getType().getName().substring(10)));
     }
 
     public void createEntities(Player player) {
@@ -93,6 +96,8 @@ public class Disguise {
 
         armorStand = armorStandEntity.getUniqueId();
         fallingBlock = fallingBlockEntity.getUniqueId();
+
+        BlockDisguises.sendDebugMessage("Summoned armor_stand and falling_block entities for " + player.getName() + "'s disguise");
     }
 
     private void removeEntities() {
@@ -110,9 +115,17 @@ public class Disguise {
             Optional<Entity> entity = world.getEntity(fallingBlock);
             entity.ifPresent(Entity::remove);
         }
+
+        Optional<String> ownerName = getOwnerName();
+        if (ownerName.isPresent()) {
+            BlockDisguises.sendDebugMessage("Despawned armor_stand and falling_block entities for " + ownerName.get() + "'s disguise");
+        } else {
+            BlockDisguises.sendDebugMessage("Despawned armor_stand and falling_block entities for disguise associated with player UUID " + ownerName.toString());
+        }
     }
 
     public void sendBlockChange(Player player) {
+        // Send a block change to a single player
         if (state != State.SOLID) {
             return; // No block change to send
         }
@@ -134,36 +147,41 @@ public class Disguise {
 
             player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
         }
+
+        // No debug message for this because of spam
     }
 
-    public void sendBlockChangeOptimally(Player player, Location<World> from, Location<World> to) {
-        if (state != State.SOLID) {
-            return; // No block change to send
-        }
+    // public void sendBlockChangeOptimally(Player player, Location<World> from, Location<World> to) {
+    //     // Currently unused. Thought of sending a single block change if a player just moved within render distance of the block
+    //     if (state != State.SOLID) {
+    //         return; // No block change to send
+    //     }
 
-        // Prevents the player from being pushed away by their own block
-        if (player.getUniqueId().equals(owner)) {
-            return;
-        }
+    //     // Prevents the player from being pushed away by their own block
+    //     if (player.getUniqueId().equals(owner)) {
+    //         return;
+    //     }
 
-        if (from.getExtent().getUniqueId().equals(getWorld())) {
+    //     if (from.getExtent().getUniqueId().equals(getWorld())) {
 
-            Vector3i thisBlockPosition = lastLocation.getBlockPosition();
-            Vector3i fromBlockPosition = from.getBlockPosition();
-            Vector3i toBlockPosition = to.getBlockPosition();
+    //         Vector3i thisBlockPosition = lastLocation.getBlockPosition();
+    //         Vector3i fromBlockPosition = from.getBlockPosition();
+    //         Vector3i toBlockPosition = to.getBlockPosition();
 
-            int viewDistance = player.getViewDistance() * 16; // View distance in blocks
+    //         int viewDistance = player.getViewDistance() * 16; // View distance in blocks
 
-            float distFrom = fromBlockPosition.distance(thisBlockPosition);
-            float distTo = toBlockPosition.distance(thisBlockPosition);
+    //         float distFrom = fromBlockPosition.distance(thisBlockPosition);
+    //         float distTo = toBlockPosition.distance(thisBlockPosition);
 
-            if (distFrom > viewDistance && distTo <= viewDistance) {
-                player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
-            }
-        }
-    }
+    //         if (distFrom > viewDistance && distTo <= viewDistance) {
+    //             player.sendBlockChange(lastLocation.getBlockPosition(), blockState);
+    //         }
+    //     }
+    // }
 
     public void sendBlockChanges() {
+        // Send block changes to all players within render distance
+
         if (state != State.SOLID) {
             return; // No block change to send
         }
@@ -184,9 +202,12 @@ public class Disguise {
                 }
             }
         }
+
+        // No debug message for this because of spam
     }
 
     private void resetBlockChanges(Vector3i blockPosition) {
+        // Reset block changes for all players at a given location
         for (Player player : Sponge.getServer().getOnlinePlayers()) {
             if (player.getWorld().getUniqueId().equals(getWorld())) {
                 Vector3i playerBlockPosition = player.getLocation().getBlockPosition();
@@ -199,6 +220,7 @@ public class Disguise {
     }
 
     private void resetBlockChanges() {
+        // Reset block changes for all players at this disguise's location
         resetBlockChanges(lastLocation.getBlockPosition());
     }
 
@@ -227,6 +249,8 @@ public class Disguise {
         state = State.MOBILE;
         createEntities(player);
         resetSolidifyTask();
+
+        BlockDisguises.sendDebugMessage(player.getName() + " is now moving (unsolidfied)");
     }
 
     private void setSolid() {
@@ -250,6 +274,8 @@ public class Disguise {
         removeEntities();
         state = State.SOLID;
 //        sendBlockChanges();
+
+        BlockDisguises.sendDebugMessage(player.getName() + " is now solid");
     }
 
     private void setNone() {
@@ -257,6 +283,13 @@ public class Disguise {
         resetBlockChanges();
         cancelSolidifyTask();
         state = State.NONE;
+
+        Optional<String> ownerName = getOwnerName();
+        if (ownerName.isPresent()) {
+            BlockDisguises.sendDebugMessage(ownerName.get() + " is in a None state (disconnected maybe?)");
+        } else {
+            BlockDisguises.sendDebugMessage("Player with UUID " + getOwner() + " is in a None state (disconnected maybe?)");
+        }
     }
 
     public void moveCallback(MoveEntityEvent event, Player player) { // Call this function when the disguise owner moves.
@@ -312,6 +345,13 @@ public class Disguise {
         removeEntities();
         cancelSolidifyTask();
         resetBlockChanges();
+
+        Optional<String> ownerName = getOwnerName();
+        if (ownerName.isPresent()) {
+            BlockDisguises.sendDebugMessage("Removed disguise for " + ownerName.get());
+        } else {
+            BlockDisguises.sendDebugMessage("Removed disguise for player with UUID " + getOwner());
+        }
     }
 
     public Optional<User> getOwnerUser() {

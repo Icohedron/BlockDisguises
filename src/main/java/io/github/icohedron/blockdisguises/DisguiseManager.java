@@ -47,9 +47,9 @@ public class DisguiseManager {
         disguises.entrySet().forEach(uuidDisguiseEntry -> uuidDisguiseEntry.getValue().sendBlockChange(player));
     }
 
-    public void sendBlockChangesOptimally(Player player, Location<World> from, Location<World> to) {
-        disguises.entrySet().forEach(uuidDisguiseEntry -> uuidDisguiseEntry.getValue().sendBlockChangeOptimally(player, from, to));
-    }
+    // public void sendBlockChangesOptimally(Player player, Location<World> from, Location<World> to) {
+    //     disguises.entrySet().forEach(uuidDisguiseEntry -> uuidDisguiseEntry.getValue().sendBlockChangeOptimally(player, from, to));
+    // }
 
     public boolean isDisguised(UUID uuid) {
         return disguises.containsKey(uuid);

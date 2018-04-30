@@ -49,8 +49,11 @@ public class DisguiseCmd extends BlockDisguiseCmd {
 
         disguiseManager.disguise(player, blockState);
 
-        String startClause = src == player ? "You are" : player.getName() + " is";
-        src.sendMessage(Text.of(blockDisguises.getTextPrefix(), TextColors.YELLOW, startClause + " now disguised as " + blockState.getType().getName().substring(10)));
+        if (src != player) {
+            src.sendMessage(Text.of(blockDisguises.getTextPrefix(), TextColors.YELLOW, player.getName(), " is now disguised as " + blockState.getType().getName().substring(10)));
+        }
+        // String startClause = src == player ? "You are" : player.getName() + " is";
+        // src.sendMessage(Text.of(blockDisguises.getTextPrefix(), TextColors.YELLOW, startClause + " now disguised as " + blockState.getType().getName().substring(10)));
 
         return CommandResult.success();
     }
